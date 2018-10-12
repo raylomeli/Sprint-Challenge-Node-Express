@@ -4,7 +4,7 @@
   "description": "## Assignments",
   "main": "knexfile.js",
   "scripts": {
-    "dev": "nodemon_index.js"
+    "dev": "nodemon index.js"
   },
   "repository": {
     "type": "git",
