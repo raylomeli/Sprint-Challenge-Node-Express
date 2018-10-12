@@ -11,7 +11,7 @@ const server = express();
 server.use(express.json(), cors(), helmet());
 
 server.get("/", (req, res) => {
-  res.send("<h1>Go to /projects</h1>");
+  res.send("<h1>Go to /projects for more</h1>");
 });
 
 server.get("/projects", (req, res) => {
@@ -108,6 +108,86 @@ server.delete("/actions/:id", (req, res) => {
     .catch(error => {
       console.log(error);
       res.status(500).json({ error: "Cannot remove action" });
+    });
+});
+
+server.post("/projects", (req, res) => {
+  const { name, description } = req.body;
+  const newProj = { name, description };
+  if (!name || !description) {
+    return res
+      .status(400)
+      .json({ error: "Please provide a name and description." });
+  }
+  projectDb
+    .insert(newProj)
+    .then(proj => {
+      res.status(201).json(proj);
+    })
+    .catch(error =>
+      res
+        .status(500)
+        .json({ error: "An error has occurred during project save" })
+    );
+});
+
+server.post("/actions", (req, res) => {
+  const { project_id, notes, description } = req.body;
+  const newAction = { project_id, notes, description };
+  actionDb
+    .insert(newAction)
+    .then(act => {
+      if (!act) {
+        return res
+          .status(422)
+          .send({ Error: "Cannot save without valid content" });
+      }
+      res.status(201).json(act);
+    })
+    .catch(error =>
+      res.status(500).json({
+        error: "an error occurred while trying to save this action"
+      })
+    );
+});
+
+server.put("/projects/:id", (req, res) => {
+  const { id } = req.params;
+  const { name, description } = req.body;
+  const updatedProj = { id, name, description };
+  projectDb
+    .update(id, updatedProj)
+    .then(proj => {
+      if (proj) {
+        res.status(200).json(proj);
+      } else {
+        res
+          .status(404)
+          .json({ error: `The project with id: ${id}, does not exist.` });
+      }
+    })
+    .catch(error => {
+      res.json({ error: "Cannot change project" });
+    });
+});
+
+server.put("/actions/:id", (req, res) => {
+  const { id } = req.params;
+  const { notes, description, project_id } = req.body;
+  const updatedAct = { notes, description, project_id };
+  actionDb
+    .update(id, updatedAct)
+    .then(act => {
+      if (act) {
+        res.status(200).json(act);
+      } else {
+        res
+          .status(404)
+          .json({ error: `The action with id: ${id}, does not exist.` });
+      }
+    })
+    .catch(error => {
+      res.json({ error: "Cannot change action" });
     });
 });
 
